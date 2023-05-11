@@ -31,9 +31,7 @@ from torchvision import models, transforms
 def parse_args():
     parser = argparse.ArgumentParser(description="Deploy a model to KServe")
     parser.add_argument("--deployment-name", type=str, help="Name of the resulting KServe InferenceService")
-    parser.add_argument("--cloud-model-host", type=str, help="aws and gcp supported currently for storing model artifacts", choices=['gcp', 'aws'])
-    parser.add_argument("--cloud-model-bucket", type=str, help="Cloud Bucket name to use for storing model artifacts")
-    parser.add_argument("--google-application-credentials", type=str, help="Path to Google Application Credentials file", default=None)
+    parser.add_argument("--gcs-model-bucket", type=str, help="GS Bucket name to use for storing model artifacts")
     return parser.parse_args()
 
 
@@ -148,34 +146,9 @@ model_snapshot={"name":"startup.cfg","modelCount":1,"models":{"%s":{"%s":{"defau
 # =====================================================================================
 
 
-def upload_model(model_name, files, cloud_provider, bucket_name):
-    print(f"Uploading model files to model repository to cloud provider {cloud_provider} in bucket {bucket_name}...")
-    if cloud_provider.lower() == 'gcp':
-        upload_model_to_gcs(model_name, files, bucket_name)
-    elif cloud_provider.lower() == 'aws':
-        upload_model_to_s3(model_name, files, bucket_name)
-    else:
-        raise Exception(f"Invalid cloud provider {cloud_provider} specified")
-
-
-def upload_model_to_s3(model_name, files, bucket_name):
-    import boto3
-    storage_client = boto3.client('s3')
-    for file in files:
-        if "config" in str(file):
-            folder = "config"
-        else:
-            folder = "model-store"
-
-        prefix = f'{model_name}/{folder}/'
-        storage_client.upload_file("./" + file, bucket_name, prefix+file)
-
-    print("Upload to S3 complete.")
-
-
-def upload_model_to_gcs(model_name, files, bucket_name):
+def upload_model(model_name, files, bucket_name):
+    print("Uploading model files to model repository in GCS bucket...")
     storage_client = storage.Client()
-    
     bucket = storage_client.get_bucket(bucket_name)
 
     for file in files:
@@ -290,8 +263,7 @@ def main():
     ksrv = KServeInfo()
     model = ModelInfo("/pfs/data/model-info.yaml")
 
-    if args.google_application_credentials:
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = args.google_application_credentials
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/determined_shared_fs/service-account.json"
 
     print(f"Starting pipeline: deploy-name='{args.deployment_name}', model='{model.name}', version='{model.version}'")
 
@@ -304,16 +276,11 @@ def main():
     # Create config.properties for .mar file, return files to upload to GCS bucket
     model_files = create_properties_file(model.name, model.version)
 
-    # Upload model artifacts to Cloud  bucket in the format for TorchServe
-    upload_model(model.name, model_files, args.cloud_model_host, args.cloud_model_bucket)
+    # Upload model artifacts to GCS bucket in the format for TorchServe
+    upload_model(model.name, model_files, args.gcs_model_bucket)
 
     # Instantiate KServe Client using kubeconfig
-    k8s_config_file = "/determined_shared_fs/k8s.config"
-    if os.path.exists(k8s_config_file):
-        print ('k8s_config_file exists')
-        kclient = KServeClient(config_file=k8s_config_file)
-    else:
-        kclient = KServeClient()
+    kclient = KServeClient(config_file="/determined_shared_fs/k8s.config")
 
     # Check if a previous version of the InferenceService exists (return true/false)
     replace = check_existence(kclient, args.deployment_name, ksrv.namespace)
