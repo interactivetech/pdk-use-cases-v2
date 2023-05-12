@@ -1,12 +1,12 @@
 {
   "pipeline": {
-    "name": "dogs-and-cats-deploy"
+    "name": "brain-mri-deploy"
   },
   "description": "Deploys a model into production via the KServe Python SDK.",
   "input": {
     "pfs": {
       "name": "data",
-      "repo": "dogs-and-cats-model",
+      "repo": "brain-mri-train",
       "branch": "master",
       "glob": "/"
     }
@@ -16,9 +16,9 @@
       "/bin/sh"
     ],
     "stdin": [
-      "python deploy.py --deployment-name dogcat-deploy --gcs-model-bucket kserve-models"
+      "python deploy.py --deployment-name brain-mri-deploy --gcs-model-bucket kserve-models"
     ],
-    "image": "hugcyrill/pdk:deploy_0.0.11",
+    "image": "hugcyrill/pdk:deploy_brain_0.0.5",
     "secrets": [
       {
         "name": "pipeline-secret",

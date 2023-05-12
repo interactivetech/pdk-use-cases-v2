@@ -1,14 +1,15 @@
 {
   "pipeline": {
-    "name": "dogs-and-cats-deploy"
+    "name": "brain-mri-train"
   },
-  "description": "Deploys a model into production via the KServe Python SDK.",
+  "description": "Detects changed files into a repository and triggers a retraining on that dataset",
   "input": {
     "pfs": {
       "name": "data",
-      "repo": "dogs-and-cats-model",
+      "repo": "brain-mri-data",
       "branch": "master",
-      "glob": "/"
+      "glob": "/",
+      "empty_files": true
     }
   },
   "transform": {
@@ -16,9 +17,9 @@
       "/bin/sh"
     ],
     "stdin": [
-      "python deploy.py --deployment-name dogcat-deploy --gcs-model-bucket kserve-models"
+      "python train.py --git-url https://git@github.com:/hugcyrill/pdk-use-cases.git --git-ref main --sub-dir brain-mri/experiment --config const.yaml --repo brain-mri-data --model brain-mri"
     ],
-    "image": "hugcyrill/pdk:deploy_0.0.11",
+    "image": "hugcyrill/pds:train_0.0.3",
     "secrets": [
       {
         "name": "pipeline-secret",
@@ -37,8 +38,8 @@
       },
       {
         "name": "pipeline-secret",
-        "key": "kserve_namespace",
-        "env_var": "KSERVE_NAMESPACE"
+        "key": "pac_token",
+        "env_var": "PAC_TOKEN"
       }
     ]
   },

@@ -1,12 +1,12 @@
 {
   "pipeline": {
-    "name": "dogs-and-cats-deploy"
+    "name": "finbert-deploy"
   },
   "description": "Deploys a model into production via the KServe Python SDK.",
   "input": {
     "pfs": {
       "name": "data",
-      "repo": "dogs-and-cats-model",
+      "repo": "finbert-train",
       "branch": "master",
       "glob": "/"
     }
@@ -16,9 +16,9 @@
       "/bin/sh"
     ],
     "stdin": [
-      "python deploy.py --deployment-name dogcat-deploy --gcs-model-bucket kserve-models"
+      "python deploy.py --deployment-name finbert-deploy --gcs-model-bucket kserve-models"
     ],
-    "image": "hugcyrill/pdk:deploy_0.0.11",
+    "image": "hugcyrill/pdk:deploy_finbert_0.0.2",
     "secrets": [
       {
         "name": "pipeline-secret",

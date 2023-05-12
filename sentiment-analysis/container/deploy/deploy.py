@@ -24,7 +24,6 @@ from kubernetes import client
 from kubernetes.client import V1ResourceRequirements
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from torchvision import models, transforms
 
 # =====================================================================================
 
@@ -71,7 +70,7 @@ def get_version(client, model_name, model_version) -> ModelVersion:
 # =====================================================================================
 
 
-def create_scriptmodule(det_master, det_user, det_pw, model_name, pach_id):
+def create_state_dict(det_master, det_user, det_pw, model_name, pach_id):
 
     print(f"Loading model version '{model_name}/{pach_id}' from master at '{det_master}...'")
 
@@ -90,14 +89,15 @@ def create_scriptmodule(det_master, det_user, det_pw, model_name, pach_id):
     delta = end - start
     print(f"Checkpoint loaded in {delta} seconds.")
 
-    print(f"Creating ScriptModule from Determined checkpoint...")
+    print(f"Creating state_dict from Determined checkpoint...")
 
-    # Create ScriptModule
-    m = torch.jit.script(trial.model)
+    # Define Model
+    model = trial.model
 
-    # Save ScriptModule to file
-    torch.jit.save(m, "scriptmodule.pt")
-    print(f"ScriptModule created successfully.")
+    # Save model state_dict
+    torch.save(model.state_dict(), "./state_dict.pth")
+
+    print(f"state_dict created successfully.")
 
 
 # =====================================================================================
@@ -106,7 +106,7 @@ def create_scriptmodule(det_master, det_user, det_pw, model_name, pach_id):
 def create_mar_file(model_name, model_version):
     print(f"Creating .mar file for model '{model_name}'...")
     os.system(
-        "torch-model-archiver --model-name %s --version %s --serialized-file ./scriptmodule.pt --handler ./dog_cat_handler.py --force"
+        "torch-model-archiver --model-name %s --version %s --serialized-file ./state_dict.pth --handler ./finbert_handler_grpc.py --force"
         % (model_name, model_version)
     )
     print(f"Created .mar file successfully.")
@@ -181,7 +181,9 @@ def create_inference_service(kclient, k8s_namespace, model_name, deployment_name
         ),
         spec=V1beta1InferenceServiceSpec(
             predictor=V1beta1PredictorSpec(
-                pytorch=(V1beta1TorchServeSpec(storage_uri="gs://kserve-models/%s" % (model_name), resources=(V1ResourceRequirements(requests={'cpu':'10', 'memory':'10Gi'}, limits={'cpu':'10', 'memory':'10Gi'}))))
+                pytorch=(
+                    V1beta1TorchServeSpec(protocol_version="v2", storage_uri="gs://kserve-models/%s" % (model_name), resources=(V1ResourceRequirements(requests={'cpu':'12', 'memory':'20Gi'}, limits={'cpu':'15', 'memory':'30Gi'})))
+                )
             )
         ),
     )
@@ -268,10 +270,10 @@ def main():
 
     print(f"Starting pipeline: deploy-name='{args.deployment_name}', model='{model.name}', version='{model.version}'")
 
-    # Pull Determined.AI Checkpoint, load it, and create ScriptModule (TorchScript)
-    create_scriptmodule(det.master, det.username, det.password, model.name, model.version)
+    # Pull Determined.AI Checkpoint, load it, and create State_Dict from det checkpoint
+    create_state_dict(det.master, det.username, det.password, model.name, model.version)
 
-    # Create .mar file from ScriptModule
+    # Create .mar file from State_Dict and handler
     create_mar_file(model.name, model.version)
 
     # Create config.properties for .mar file, return files to upload to GCS bucket

@@ -3,6 +3,7 @@ import os
 import random
 import time
 
+import cv2
 import numpy as np
 import torch
 import torch.optim as optim
@@ -106,7 +107,7 @@ def create_scriptmodule(det_master, det_user, det_pw, model_name, pach_id):
 def create_mar_file(model_name, model_version):
     print(f"Creating .mar file for model '{model_name}'...")
     os.system(
-        "torch-model-archiver --model-name %s --version %s --serialized-file ./scriptmodule.pt --handler ./dog_cat_handler.py --force"
+        "torch-model-archiver --model-name %s --version %s --serialized-file ./scriptmodule.pt --handler ./brain_mri_handler.py --force"
         % (model_name, model_version)
     )
     print(f"Created .mar file successfully.")
@@ -181,7 +182,9 @@ def create_inference_service(kclient, k8s_namespace, model_name, deployment_name
         ),
         spec=V1beta1InferenceServiceSpec(
             predictor=V1beta1PredictorSpec(
-                pytorch=(V1beta1TorchServeSpec(storage_uri="gs://kserve-models/%s" % (model_name), resources=(V1ResourceRequirements(requests={'cpu':'10', 'memory':'10Gi'}, limits={'cpu':'10', 'memory':'10Gi'}))))
+                pytorch=(
+                    V1beta1TorchServeSpec(protocol_version="v2", storage_uri="gs://kserve-models/%s" % (model_name), resources=(V1ResourceRequirements(requests={'cpu':'12', 'memory':'15Gi'}, limits={'cpu':'15', 'memory':'20Gi'})))
+                )
             )
         ),
     )
