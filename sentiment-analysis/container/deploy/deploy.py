@@ -22,6 +22,7 @@ from kserve import (
 )
 from kubernetes import client
 from kubernetes.client import V1ResourceRequirements
+from kubernetes.client import V1Toleration
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
@@ -181,8 +182,9 @@ def create_inference_service(kclient, k8s_namespace, model_name, deployment_name
         ),
         spec=V1beta1InferenceServiceSpec(
             predictor=V1beta1PredictorSpec(
+                tolerations=[(V1Toleration(effect="NoSchedule", key="type", value="inference", operator="Equal"))],
                 pytorch=(
-                    V1beta1TorchServeSpec(protocol_version="v2", storage_uri="gs://kserve-models/%s" % (model_name), resources=(V1ResourceRequirements(requests={'cpu':'12', 'memory':'20Gi'}, limits={'cpu':'15', 'memory':'30Gi'})))
+                    V1beta1TorchServeSpec(protocol_version="v2", storage_uri="gs://kserve-models/%s" % (model_name), resources=(V1ResourceRequirements(requests={'cpu':'20', 'memory':'25Gi'}, limits={'cpu':'25', 'memory':'35Gi'})))
                 )
             )
         ),
