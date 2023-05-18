@@ -18,7 +18,7 @@
     "stdin": [
       "python deploy.py --deployment-name brain-mri-deploy --gcs-model-bucket kserve-models"
     ],
-    "image": "hugcyrill/pdk:deploy_brain_0.0.5",
+    "image": "hugcyrill/pdk:deploy_brain_tolerations_0.0.7",
     "secrets": [
       {
         "name": "pipeline-secret",
@@ -42,5 +42,5 @@
       }
     ]
   },
-  "pod_patch": "[  {   \"op\": \"add\",   \"path\": \"/volumes/-\",   \"value\": {    \"name\": \"det-checkpoints\",    \"hostpath\": {     \"path\": \"/mnt/mapr_nfs/determined/det_checkpoints\",     \"type\": \"Directory\"    }   }  },  {   \"op\": \"add\",   \"path\": \"/containers/0/volumeMounts/-\",   \"value\": {    \"mountPath\": \"/determined_shared_fs\",    \"name\": \"det-checkpoints\"   }  } ]"
+  "pod_patch": "[  {   \"op\": \"add\",   \"path\": \"/volumes/-\",   \"value\": {    \"name\": \"det-checkpoints\",    \"hostpath\": {     \"path\": \"/determined\",     \"type\": \"Directory\"    }   }  },  {   \"op\": \"add\",   \"path\": \"/containers/0/volumeMounts/-\",   \"value\": {    \"mountPath\": \"/determined_shared_fs\",    \"name\": \"det-checkpoints\"   }  } ]"
 }

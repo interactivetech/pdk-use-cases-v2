@@ -18,7 +18,7 @@
     "stdin": [
       "python deploy.py --deployment-name finbert-deploy --gcs-model-bucket kserve-models"
     ],
-    "image": "hugcyrill/pdk:deploy_finbert_0.0.2",
+    "image": "hugcyrill/pdk:deploy_finbert_tolerations_0.0.3",
     "secrets": [
       {
         "name": "pipeline-secret",
@@ -42,5 +42,5 @@
       }
     ]
   },
-  "pod_patch": "[  {   \"op\": \"add\",   \"path\": \"/volumes/-\",   \"value\": {    \"name\": \"det-checkpoints\",    \"hostpath\": {     \"path\": \"/mnt/mapr_nfs/determined/det_checkpoints\",     \"type\": \"Directory\"    }   }  },  {   \"op\": \"add\",   \"path\": \"/containers/0/volumeMounts/-\",   \"value\": {    \"mountPath\": \"/determined_shared_fs\",    \"name\": \"det-checkpoints\"   }  } ]"
+  "pod_patch": "[  {   \"op\": \"add\",   \"path\": \"/volumes/-\",   \"value\": {    \"name\": \"det-checkpoints\",    \"hostpath\": {     \"path\": \"/determined\",     \"type\": \"Directory\"    }   }  },  {   \"op\": \"add\",   \"path\": \"/containers/0/volumeMounts/-\",   \"value\": {    \"mountPath\": \"/determined_shared_fs\",    \"name\": \"det-checkpoints\"   }  } ]"
 }
