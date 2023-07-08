@@ -1,12 +1,12 @@
 {
   "pipeline": {
-    "name": "dogs-and-cats-deploy"
+    "name": "andrew-dogs-and-cats-deploy"
   },
   "description": "Deploys a model into production via the KServe Python SDK.",
   "input": {
     "pfs": {
       "name": "data",
-      "repo": "dogs-and-cats-model",
+      "repo": "andrew-dogs-and-cats-train",
       "branch": "master",
       "glob": "/"
     }
@@ -16,7 +16,7 @@
       "/bin/sh"
     ],
     "stdin": [
-      "python deploy.py --deployment-name dogcat-deploy --gcs-model-bucket kserve-models"
+      "python deploy.py --deployment-name andrew-dogcat-deploy --gcs-model-bucket kserve-models"
     ],
     "image": "hugcyrill/pdk:deploy_tolerations_0.0.12",
     "secrets": [

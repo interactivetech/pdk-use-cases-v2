@@ -1,12 +1,12 @@
 {
   "pipeline": {
-    "name": "dogs-and-cats-model"
+    "name": "andrew-dogs-and-cats-train"
   },
   "description": "Detects changed files into a repository and triggers a retraining on that dataset",
   "input": {
     "pfs": {
       "name": "data",
-      "repo": "dogs-and-cats",
+      "repo": "dogs-and-cats-data",
       "branch": "master",
       "glob": "/",
       "empty_files": true
@@ -17,7 +17,7 @@
       "/bin/sh"
     ],
     "stdin": [
-      "python train.py --git-url https://git@github.com:/hugcyrill/pdk-use-cases-v2.git --git-ref main --sub-dir dog-cat/experiment --config const.yaml --repo dogs-and-cats --model dogs-and-cats --project default"
+      "python train.py --git-url https://git@github.com:/interactivetech/pdk-use-cases-v2.git --git-ref main --sub-dir dog-cat/experiment --config const.yaml --repo dogs-and-cats-data --model andrew-dog-and-cat-model --project default"
     ],
     "image": "hugcyrill/pdk:train_0.0.1",
     "secrets": [
