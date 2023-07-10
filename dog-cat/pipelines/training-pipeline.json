@@ -14,7 +14,7 @@
   },
   "transform": {
     "cmd": [
-      "/bin/sh"
+      "/bin/sh" 
     ],
     "stdin": [
       "python train.py --git-url https://git@github.com:/interactivetech/pdk-use-cases-v2.git --git-ref main --sub-dir dog-cat/experiment --config const.yaml --repo dogs-and-cats-data --model andrew-dog-and-cat-model --project default"
